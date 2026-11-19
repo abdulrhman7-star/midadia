@@ -1,73 +1,123 @@
 {
   "entities": {
-    "user": {
-      "title": "User",
-      "description": "User account and profile details",
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user profile, credit balance, and editor preferences.",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID matching the document ID."
         },
         "displayName": {
-          "type": "string"
+          "type": "string",
+          "description": "User display name (1-80 characters)."
         },
-        "photoURL": {
-          "type": "string"
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "User email address (owner-only PII)."
+        },
+        "credits": {
+          "type": "integer",
+          "description": "Available export credits (0-100000)."
+        },
+        "maxCredits": {
+          "type": "integer",
+          "description": "Maximum credit tier cap (1-100000)."
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "enum": ["ar", "en", "fr", "es", "tr", "de", "zh"],
+          "description": "UI localization code."
+        },
+        "darkMode": {
+          "type": "boolean",
+          "description": "Whether dark theme is active."
+        },
+        "favoriteTemplateIds": {
+          "type": "array",
+          "description": "Bounded list of up to 50 starred template IDs."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp() on creation."
         },
         "updatedAt": {
-          "type": "string"
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp updated via FieldValue.serverTimestamp()."
         }
       },
-      "required": ["id", "email"]
+      "required": ["userId", "displayName", "credits", "maxCredits", "preferredLanguage", "darkMode", "favoriteTemplateIds", "createdAt", "updatedAt"]
     },
-    "document": {
-      "title": "Document",
-      "description": "Saved document containing title, markdown, html, and optional docx export payload",
+    "SavedDocument": {
+      "title": "SavedDocument",
+      "description": "A formatted Markdown document with Word page layout settings.",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
-        },
         "userId": {
-          "type": "string"
+          "type": "string",
+          "description": "Owner UID matching parent user path."
         },
         "title": {
           "type": "string",
-          "maxLength": 200
+          "description": "Document title (1-200 characters)."
         },
         "markdown": {
           "type": "string",
-          "maxLength": 100000
+          "description": "Raw Markdown + LaTeX source (0-150000 characters)."
         },
-        "html": {
+        "direction": {
           "type": "string",
-          "maxLength": 200000
+          "enum": ["rtl", "ltr"],
+          "description": "Text direction for Word and preview rendering."
         },
-        "docxBase64": {
+        "orientation": {
           "type": "string",
-          "maxLength": 800000
+          "enum": ["portrait", "landscape"],
+          "description": "Page orientation."
         },
-        "isPublic": {
-          "type": "boolean"
+        "margins": {
+          "type": "string",
+          "enum": ["normal", "narrow", "wide"],
+          "description": "A4 page margin preset."
+        },
+        "fontFamily": {
+          "type": "string",
+          "description": "Selected document font family name."
+        },
+        "fontSizeSp": {
+          "type": "integer",
+          "description": "Base font size in points/sp (8-32)."
+        },
+        "watermark": {
+          "type": "string",
+          "description": "Optional watermark text."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Immutable creation timestamp via FieldValue.serverTimestamp()."
         },
         "updatedAt": {
-          "type": "number"
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modification timestamp via FieldValue.serverTimestamp()."
         }
       },
-      "required": ["id", "userId", "title"]
+      "required": ["userId", "title", "markdown", "direction", "orientation", "margins", "fontFamily", "fontSizeSp", "watermark", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
     "/users/{userId}": {
-      "schema": "user",
-      "description": "User profile records indexed by auth UID"
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Owner-isolated user profile, export credits, and preferences."
     },
     "/users/{userId}/documents/{docId}": {
-      "schema": "document",
-      "description": "Saved user documents under user subcollection"
+      "schema": { "$ref": "#/entities/SavedDocument" },
+      "description": "User-owned saved Markdown and Word layout documents."
     }
   }
 }

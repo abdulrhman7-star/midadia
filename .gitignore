@@ -3,5 +3,10 @@ node_modules/
 coverage/
 .DS_Store
 *.log
+*-debug.log
 .env*
 !.env.example
+.gradle/
+build/
+app/build/
+local.properties
